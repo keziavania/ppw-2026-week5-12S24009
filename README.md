@@ -24,8 +24,8 @@ PHP 8.2+, Laravel 11, SQLite, Bootstrap 5 (CDN), Composer.
 ## Instalasi
 
 ```bash
-git clone https://github.com/[username]/ppw-2026-week5-[NIM].git
-cd ppw-2026-week5-[NIM]
+git clone https://github.com/keziavania/ppw-2026-week5-12S24009.git
+cd ppw-2026-week5-12S24009
 composer install
 copy .env.example .env        # Linux/macOS: cp .env.example .env
 php artisan key:generate
