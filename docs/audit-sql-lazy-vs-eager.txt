@@ -1,0 +1,25 @@
+[2026-10-10 04:11:20] local.INFO: ===== LAZY LOADING (N+1) =====  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.59 ms) select * from "bukus"  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.08 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.06 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.06 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.07 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.06 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.07 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.07 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.06 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.06 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.06 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.06 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.06 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.06 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.08 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.07 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.08 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.07 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.06 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.06 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:24] local.INFO: [SQL AUDIT] (0.06 ms) select * from "kategoris" where "kategoris"."id" = ? limit 1  
+[2026-10-10 04:11:29] local.INFO: ===== EAGER LOADING =====  
+[2026-10-10 04:11:36] local.INFO: [SQL AUDIT] (0.19 ms) select * from "bukus"  
+[2026-10-10 04:11:36] local.INFO: [SQL AUDIT] (0.14 ms) select * from "kategoris" where "kategoris"."id" in (1, 2, 3, 4, 5)  
