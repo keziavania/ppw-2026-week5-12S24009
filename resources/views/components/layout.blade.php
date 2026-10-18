@@ -17,15 +17,26 @@
 </head>
 <body class="bg-light">
     <nav class="navbar navbar-expand navbar-dark navbar-del shadow-sm mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ route('buku.index') }}">SIPUS-Del</a>
-            <div class="navbar-nav">
-                <a class="nav-link {{ request()->routeIs('peminjaman.*') ? 'active fw-semibold' : '' }}" href="{{ route('peminjaman.index') }}">Peminjaman</a>
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{{ route('buku.index') }}">SIPUS-Del</a>
+
+        @auth
+            <div class="navbar-nav me-auto">
                 <a class="nav-link {{ request()->routeIs('buku.*') ? 'active fw-semibold' : '' }}" href="{{ route('buku.index') }}">Buku</a>
                 <a class="nav-link {{ request()->routeIs('kategori.*') ? 'active fw-semibold' : '' }}" href="{{ route('kategori.index') }}">Kategori</a>
+                <a class="nav-link {{ request()->routeIs('peminjaman.*') ? 'active fw-semibold' : '' }}" href="{{ route('peminjaman.index') }}">Peminjaman</a>
             </div>
-        </div>
-    </nav>
+
+            <div class="d-flex align-items-center gap-3 text-white small">
+                <span>{{ auth()->user()->name }}</span>
+                <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-outline-light">Logout</button>
+                </form>
+            </div>
+        @endauth
+    </div>
+</nav>
 
     <div class="container pb-5">
         @if(session('success'))
@@ -40,7 +51,7 @@
               {{ session('error') }}
               <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        @endif
+    @endif
 
         @if($errors->any())
             <div class="alert alert-danger">Periksa kembali isian formulir, ada data yang belum valid.</div>
