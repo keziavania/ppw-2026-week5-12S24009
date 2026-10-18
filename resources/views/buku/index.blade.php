@@ -28,6 +28,7 @@
                             <td><span class="badge bg-secondary">{{ $buku->kategori->nama_kategori }}</span></td>
                             <td>{{ $buku->stok }}</td>
                             <td class="text-end">
+                                <a href="{{ route('peminjaman.create', ['buku_id' => $buku->id]) }}" class="btn btn-sm btn-outline-success">Pinjam</a>
                                 <a href="{{ route('buku.show', $buku) }}" class="btn btn-sm btn-outline-secondary">Lihat</a>
                                 <a href="{{ route('buku.edit', $buku) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                                 <form action="{{ route('buku.destroy', $buku) }}" method="POST" class="d-inline"

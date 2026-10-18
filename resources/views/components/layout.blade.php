@@ -20,6 +20,7 @@
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ route('buku.index') }}">SIPUS-Del</a>
             <div class="navbar-nav">
+                <a class="nav-link {{ request()->routeIs('peminjaman.*') ? 'active fw-semibold' : '' }}" href="{{ route('peminjaman.index') }}">Peminjaman</a>
                 <a class="nav-link {{ request()->routeIs('buku.*') ? 'active fw-semibold' : '' }}" href="{{ route('buku.index') }}">Buku</a>
                 <a class="nav-link {{ request()->routeIs('kategori.*') ? 'active fw-semibold' : '' }}" href="{{ route('kategori.index') }}">Kategori</a>
             </div>
@@ -31,6 +32,13 @@
             <div class="alert alert-success alert-dismissible fade show">
                 {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show">
+              {{ session('error') }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
 
