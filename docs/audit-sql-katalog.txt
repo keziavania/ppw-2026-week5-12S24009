@@ -1,0 +1,8 @@
+[2026-10-18 08:27:10] local.INFO: [SQL AUDIT] (0.12 ms) select count(*) as aggregate from "bukus"  
+[2026-10-18 08:27:10] local.INFO: [SQL AUDIT] (0.28 ms) select "bukus".*, (select count(*) from "peminjamans" where "bukus"."id" = "peminjamans"."buku_id") as "peminjamans_count" from "bukus" order by "created_at" desc limit 10 offset 0  
+[2026-10-18 08:27:10] local.INFO: [SQL AUDIT] (0.14 ms) select * from "kategoris" where "kategoris"."id" in (1, 2, 4, 5)  
+[2026-10-18 08:27:10] local.INFO: [SQL AUDIT] (0.08 ms) select count(*) as aggregate from "bukus"  
+[2026-10-18 08:27:10] local.INFO: [SQL AUDIT] (0.08 ms) select sum("stok") as aggregate from "bukus"  
+[2026-10-18 08:27:10] local.INFO: [SQL AUDIT] (0.09 ms) select count(*) as aggregate from "peminjamans" where "status" = ?  
+[2026-10-18 08:27:10] local.INFO: [SQL AUDIT] (0.08 ms) select count(*) as aggregate from "peminjamans" where "status" = ?  
+[2026-10-18 08:27:10] local.INFO: [SQL AUDIT] (0.09 ms) select * from "kategoris" order by "nama_kategori" asc  

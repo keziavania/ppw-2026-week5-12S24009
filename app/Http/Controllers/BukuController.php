@@ -6,14 +6,40 @@ use App\Models\Buku;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class BukuController extends Controller
 {
-    public function index()
-    {
-        $bukus = Buku::with('kategori')->latest()->paginate(10);
-        return view('buku.index', compact('bukus'));
-    }
+    public function index(Request $request)
+{
+    $bukus = Buku::with('kategori')
+        ->withCount('peminjamans')
+        ->when($request->filled('search'), function ($query) use ($request) {
+            $s = $request->search;
+            $query->where(function ($w) use ($s) {
+                $w->where('judul', 'like', "%{$s}%")
+                  ->orWhere('penulis', 'like', "%{$s}%")
+                  ->orWhere('isbn', 'like', "%{$s}%");
+            });
+        })
+        ->when($request->filled('kategori_id'), function ($query) use ($request) {
+            $query->where('kategori_id', $request->kategori_id);
+        })
+        ->latest()
+        ->paginate(10)
+        ->withQueryString();
+
+    $stats = [
+        'total_judul' => DB::table('bukus')->count(),
+        'total_stok' => DB::table('bukus')->sum('stok'),
+        'sedang_dipinjam' => DB::table('peminjamans')->where('status', 'dipinjam')->count(),
+        'dikembalikan' => DB::table('peminjamans')->where('status', 'dikembalikan')->count(),
+    ];
+
+    $kategoris = Kategori::orderBy('nama_kategori')->get();
+
+    return view('buku.index', compact('bukus', 'stats', 'kategoris'));
+}
 
     public function create()
     {
