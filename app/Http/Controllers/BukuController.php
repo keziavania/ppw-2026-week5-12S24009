@@ -11,7 +11,11 @@ use Illuminate\Support\Facades\DB;
 class BukuController extends Controller
 {
     public function index(Request $request)
-{
+    {
+    if ($request->filled('search')) {
+    session(['last_search' => $request->search]);
+    }
+    
     $bukus = Buku::with('kategori')
         ->withCount('peminjamans')
         ->when($request->filled('search'), function ($query) use ($request) {

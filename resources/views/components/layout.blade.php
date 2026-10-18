@@ -37,6 +37,16 @@
         @endauth
     </div>
 </nav>
+@auth
+    <div class="container mb-3">
+        <div class="small text-muted border rounded bg-white px-3 py-2">
+            <strong>Sesi:</strong>
+            login sejak {{ session('login_timestamp', '-') }}
+            &middot; pencarian terakhir: {{ session('last_search', '-') }}
+            &middot; peminjam terakhir: {{ session('last_borrower', '-') }}
+        </div>
+    </div>
+@endauth
 
     <div class="container pb-5">
         @if(session('success'))

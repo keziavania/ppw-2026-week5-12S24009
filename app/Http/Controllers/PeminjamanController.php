@@ -66,7 +66,8 @@ class PeminjamanController extends Controller
                     'status' => 'dipinjam',
                 ]);
             }, 3);
-
+            session(['last_borrower' => $validated['nama_peminjam'] . ' (' . strtoupper(trim($validated['nim_peminjam'])) . ')']);
+            
             return redirect()->route('peminjaman.index')
                 ->with('success', 'Peminjaman berhasil dicatat, stok buku diperbarui.');
         } catch (\RuntimeException $e) {
