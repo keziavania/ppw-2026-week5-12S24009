@@ -14,6 +14,22 @@ class BukuSeeder extends Seeder
      */
     public function run(): void
 {
-    Buku::factory(20)->recycle(Kategori::all())->create();
+    $kategoris = Kategori::all();
+
+    // 18 buku acak + 2 buku sampel = 20 buku (sesuai spesifikasi Minggu 5)
+    Buku::factory(18)->recycle($kategoris)->create();
+
+    // Sampel khusus untuk menguji transaksi
+    Buku::factory()->recycle($kategoris)->create([
+        'isbn' => '9786020000001',
+        'judul' => 'Sampel Uji Stok Nol',
+        'stok' => 0,
+    ]);
+
+    Buku::factory()->recycle($kategoris)->create([
+        'isbn' => '9786020000002',
+        'judul' => 'Sampel Uji Stok Satu',
+        'stok' => 1,
+    ]);
 }
 }
