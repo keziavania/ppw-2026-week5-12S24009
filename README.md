@@ -29,11 +29,12 @@ cd ppw-2026-week5-12S24009
 composer install
 copy .env.example .env        # Linux/macOS: cp .env.example .env
 php artisan key:generate
+php -r "touch('database/database.sqlite');"
 php artisan migrate:fresh --seed
 php artisan serve
 ```
 
-Buka `http://localhost:8000`. Jika diminta membuat file `database/database.sqlite`, jawab `yes`.
+Buka `http://localhost:8000`.
 
 Catatan: pengaturan `policy.advisories.block=false` sudah ada di `composer.json` karena Laravel 11.x terkena blokir security advisory pada Composer versi terbaru. Ini hanya untuk keperluan tugas lokal.
 
@@ -84,6 +85,7 @@ git checkout week6-db-session
 composer install
 copy .env.example .env        # Linux/macOS: cp .env.example .env
 php artisan key:generate
+php -r "touch('database/database.sqlite');"
 php artisan migrate:fresh --seed
 php artisan serve
 ```
