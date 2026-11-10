@@ -15,15 +15,20 @@ class BukuApiController extends Controller
 {
     use ApiResponse;
 
-    /**
-     * GET /api/v1/bukus  (Publik)
-     * Search, filter, sort, paginasi. Bebas N+1 (with + withCount).
-     */
     public function index(Request $request): JsonResponse
     {
-        $allowedSorts = ['judul', 'penulis', 'isbn', 'stok', 'created_at'];
-        $sortBy  = in_array($request->query('sort'), $allowedSorts) ? $request->query('sort') : 'judul';
-        $sortDir = strtolower($request->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $allowedSorts = [
+            'judul', 'penulis', 'isbn', 'stok', 'created_at'
+        ];
+
+        $sortBy = in_array($request->query('sort'), $allowedSorts)
+            ? $request->query('sort')
+            : 'judul';
+
+        $sortDir = strtolower($request->query('dir', 'asc')) === 'desc'
+            ? 'desc'
+            : 'asc';
+
         $perPage = min(max((int) $request->query('per_page', 5), 1), 50);
 
         $paginator = Buku::query()
@@ -36,8 +41,14 @@ class BukuApiController extends Controller
                         ->orWhere('isbn', 'like', "%{$search}%");
                 });
             })
-            ->when($request->query('kategori_id'), fn ($q, $id) => $q->where('kategori_id', (int) $id))
-            ->when($request->boolean('tersedia'), fn ($q) => $q->where('stok', '>', 0))
+            ->when(
+                $request->query('kategori_id'),
+                fn ($q, $id) => $q->where('kategori_id', (int) $id)
+            )
+            ->when(
+                $request->boolean('tersedia'),
+                fn ($q) => $q->where('stok', '>', 0)
+            )
             ->orderBy($sortBy, $sortDir)
             ->paginate($perPage)
             ->withQueryString();
@@ -47,23 +58,19 @@ class BukuApiController extends Controller
             message: 'Daftar koleksi buku berhasil diambil.',
             meta: [
                 'current_page' => $paginator->currentPage(),
-                'per_page'     => $paginator->perPage(),
-                'total_items'  => $paginator->total(),
-                'total_pages'  => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total_items' => $paginator->total(),
+                'total_pages' => $paginator->lastPage(),
                 'links' => [
                     'first' => $paginator->url(1),
-                    'prev'  => $paginator->previousPageUrl(),
-                    'next'  => $paginator->nextPageUrl(),
-                    'last'  => $paginator->url($paginator->lastPage()),
+                    'prev' => $paginator->previousPageUrl(),
+                    'next' => $paginator->nextPageUrl(),
+                    'last' => $paginator->url($paginator->lastPage()),
                 ],
             ]
         );
     }
 
-    /**
-     * GET /api/v1/bukus/{id}  (Publik)
-     * Detail buku + kategori + riwayat peminjaman.
-     */
     public function show(string $id): JsonResponse
     {
         $buku = Buku::with(['kategori', 'peminjamans'])
@@ -80,22 +87,22 @@ class BukuApiController extends Controller
         );
     }
 
-    /**
-     * POST /api/v1/bukus  (Bearer Token)
-     * 201 Created + Header Location
-     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'judul'       => 'required|string|max:255',
-            'penulis'     => 'required|string|max:150',
-            'isbn'        => 'required|string|max:20|unique:bukus,isbn',
+            'judul' => 'required|string|max:255',
+            'penulis' => 'required|string|max:150',
+            'penerbit' => 'required|string|max:150',
+            'tahun_terbit' => 'required|integer|min:1900|max:2100',
+            'isbn' => 'required|string|max:20|unique:bukus,isbn',
             'kategori_id' => 'required|integer|exists:kategoris,id',
-            'stok'        => 'required|integer|min:0',
+            'stok' => 'required|integer|min:0',
         ]);
 
         $buku = Buku::create($validated);
-        $buku->load('kategori')->loadCount('peminjamans');
+
+        $buku->load('kategori')
+            ->loadCount('peminjamans');
 
         return $this->createdResponse(
             data: new BukuResource($buku),
@@ -104,11 +111,6 @@ class BukuApiController extends Controller
         );
     }
 
-    /**
-     * PUT / PATCH /api/v1/bukus/{id}  (Bearer Token)
-     * PUT   = Full Replacement (semua atribut wajib)
-     * PATCH = Partial Update (sometimes|required)
-     */
     public function update(Request $request, string $id): JsonResponse
     {
         $buku = Buku::find($id);
@@ -121,19 +123,23 @@ class BukuApiController extends Controller
 
         if ($isPut) {
             $validated = $request->validate([
-                'judul'       => 'required|string|max:255',
-                'penulis'     => 'required|string|max:150',
-                'isbn'        => "required|string|max:20|unique:bukus,isbn,{$buku->id}",
+                'judul' => 'required|string|max:255',
+                'penulis' => 'required|string|max:150',
+                'penerbit' => 'required|string|max:150',
+                'tahun_terbit' => 'required|integer|min:1900|max:2100',
+                'isbn' => "required|string|max:20|unique:bukus,isbn,{$buku->id}",
                 'kategori_id' => 'required|integer|exists:kategoris,id',
-                'stok'        => 'required|integer|min:0',
+                'stok' => 'required|integer|min:0',
             ]);
         } else {
             $validated = $request->validate([
-                'judul'       => 'sometimes|required|string|max:255',
-                'penulis'     => 'sometimes|required|string|max:150',
-                'isbn'        => "sometimes|required|string|max:20|unique:bukus,isbn,{$buku->id}",
+                'judul' => 'sometimes|required|string|max:255',
+                'penulis' => 'sometimes|required|string|max:150',
+                'penerbit' => 'sometimes|required|string|max:150',
+                'tahun_terbit' => 'sometimes|required|integer|min:1900|max:2100',
+                'isbn' => "sometimes|required|string|max:20|unique:bukus,isbn,{$buku->id}",
                 'kategori_id' => 'sometimes|required|integer|exists:kategoris,id',
-                'stok'        => 'sometimes|required|integer|min:0',
+                'stok' => 'sometimes|required|integer|min:0',
             ]);
 
             if (empty($validated)) {
@@ -147,7 +153,9 @@ class BukuApiController extends Controller
         }
 
         $buku->update($validated);
-        $buku->load('kategori')->loadCount('peminjamans');
+
+        $buku->load('kategori')
+            ->loadCount('peminjamans');
 
         return $this->successResponse(
             data: new BukuResource($buku),
@@ -157,10 +165,6 @@ class BukuApiController extends Controller
         );
     }
 
-    /**
-     * DELETE /api/v1/bukus/{id}  (Bearer Token)
-     * 409 jika masih ada peminjaman aktif, 204 jika sukses.
-     */
     public function destroy(string $id): JsonResponse
     {
         $buku = Buku::find($id);
@@ -169,7 +173,9 @@ class BukuApiController extends Controller
             return $this->notFoundBuku($id);
         }
 
-        $pinjamanAktif = $buku->peminjamans()->where('status', 'dipinjam')->count();
+        $pinjamanAktif = $buku->peminjamans()
+            ->where('status', 'dipinjam')
+            ->count();
 
         if ($pinjamanAktif > 0) {
             return $this->problemResponse(
@@ -185,10 +191,6 @@ class BukuApiController extends Controller
         return $this->noContentResponse();
     }
 
-    /**
-     * GET /api/v1/bukus/{id}/referensi-eksternal  (Publik)
-     * Laravel bertindak sebagai SERVICE CONSUMER ke OpenLibrary API.
-     */
     public function referensiEksternal(string $id): JsonResponse
     {
         $buku = Buku::find($id);
@@ -206,17 +208,20 @@ class BukuApiController extends Controller
             );
         }
 
-        $isbn = preg_replace('/[^0-9Xx]/', '', $buku->isbn); // buang strip/spasi
-        $key  = "ISBN:{$isbn}";
+        $isbn = preg_replace('/[^0-9Xx]/', '', $buku->isbn);
+
+        $key = "ISBN:{$isbn}";
 
         try {
             $response = Http::accept('application/json')
-            ->withOptions(['force_ip_resolve' => 'v4'])
-            ->timeout(8)
-            ->get('https://openlibrary.org/api/books', [
+                ->withOptions([
+                    'force_ip_resolve' => 'v4'
+                ])
+                ->timeout(8)
+                ->get('https://openlibrary.org/api/books', [
                     'bibkeys' => $key,
-                    'format'  => 'json',
-                    'jscmd'   => 'data',
+                    'format' => 'json',
+                    'jscmd' => 'data',
                 ]);
         } catch (ConnectionException $e) {
             return $this->problemResponse(
@@ -238,7 +243,6 @@ class BukuApiController extends Controller
 
         $info = $response->json($key);
 
-        // OpenLibrary mengembalikan {} jika ISBN tidak ada
         if (empty($info)) {
             return $this->problemResponse(
                 title: 'External Resource Not Found',
@@ -251,28 +255,29 @@ class BukuApiController extends Controller
         return $this->successResponse(
             data: [
                 'buku_lokal' => [
-                    'id'    => $buku->id,
+                    'id' => $buku->id,
                     'judul' => $buku->judul,
-                    'isbn'  => $buku->isbn,
+                    'isbn' => $buku->isbn,
                 ],
                 'referensi_eksternal' => [
-                    'sumber'         => 'OpenLibrary',
-                    'judul'          => $info['title'] ?? null,
+                    'sumber' => 'OpenLibrary',
+                    'judul' => $info['title'] ?? null,
                     'jumlah_halaman' => $info['number_of_pages'] ?? null,
-                    'penerbit'       => collect($info['publishers'] ?? [])->pluck('name')->all(),
+                    'penerbit' => collect($info['publishers'] ?? [])
+                        ->pluck('name')
+                        ->all(),
                     'tanggal_terbit' => $info['publish_date'] ?? null,
-                    'penulis'        => collect($info['authors'] ?? [])->pluck('name')->all(),
-                    'cover'          => $info['cover']['medium'] ?? null,
-                    'url_pratinjau'  => $info['url'] ?? null,
+                    'penulis' => collect($info['authors'] ?? [])
+                        ->pluck('name')
+                        ->all(),
+                    'cover' => $info['cover']['medium'] ?? null,
+                    'url_pratinjau' => $info['url'] ?? null,
                 ],
             ],
             message: 'Metadata eksternal buku berhasil diambil dari OpenLibrary.'
         );
     }
 
-    /**
-     * Helper: respons 404 RFC 7807 untuk buku lokal yang tidak ditemukan.
-     */
     private function notFoundBuku(string $id): JsonResponse
     {
         return $this->problemResponse(
