@@ -1,0 +1,554 @@
+openapi: 3.0.3
+info:
+  title: SIPUS-Del REST API v1
+  version: 1.0.0
+  description: Kontrak Web Services SIPUS-Del untuk Praktikum PPW Minggu 9. Autentikasi Sanctum Bearer Token, CRUD
+    katalog, transaksi sirkulasi, RFC 7807, HATEOAS dan OpenLibrary. Endpoint SOAP legacy didokumentasikan di bawah
+    /soap/ melalui dokumentasi tersendiri.
+servers:
+- url: http://localhost:8000/api/v1
+  description: Laravel lokal
+tags:
+- name: Auth
+  description: Login dan manajemen token API
+- name: Buku
+  description: Katalog buku dan referensi eksternal
+- name: Peminjaman
+  description: Transaksi sirkulasi buku
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+      description: Tempel access_token hasil POST /auth/login
+  schemas:
+    ProblemDetails:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - instance
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+    BukuInput:
+      type: object
+      required:
+      - judul
+      - penulis
+      - penerbit
+      - tahun_terbit
+      - isbn
+      - kategori_id
+      - stok
+      properties:
+        judul:
+          type: string
+          maxLength: 255
+          example: Belajar REST API Laravel
+        penulis:
+          type: string
+          maxLength: 150
+          example: Penulis Praktikum
+        penerbit:
+          type: string
+          maxLength: 150
+          example: Penerbit Del
+        tahun_terbit:
+          type: integer
+          minimum: 1900
+          maximum: 2100
+          example: 2026
+        isbn:
+          type: string
+          maxLength: 20
+          example: '9786021234567'
+        kategori_id:
+          type: integer
+          example: 4
+        stok:
+          type: integer
+          minimum: 0
+          example: 5
+    BukuPatch:
+      type: object
+      minProperties: 1
+      description: Sebagian field BukuInput; hanya field yang dikirim diperbarui
+      properties:
+        judul:
+          type: string
+          maxLength: 255
+        penulis:
+          type: string
+          maxLength: 150
+        penerbit:
+          type: string
+          maxLength: 150
+        tahun_terbit:
+          type: integer
+          minimum: 1900
+          maximum: 2100
+        isbn:
+          type: string
+          maxLength: 20
+        kategori_id:
+          type: integer
+        stok:
+          type: integer
+          minimum: 0
+    Buku:
+      type: object
+      properties:
+        id:
+          type: integer
+        judul:
+          type: string
+        penulis:
+          type: string
+        penerbit:
+          type: string
+        tahun_terbit:
+          type: integer
+        isbn:
+          type: string
+        stok:
+          type: integer
+        status_label:
+          type: string
+          enum:
+          - TERSEDIA
+          - HABIS
+        kategori:
+          type: object
+          additionalProperties: true
+        jumlah_peminjaman:
+          type: integer
+        _links:
+          type: object
+          description: Link HATEOAS; pinjam_buku hanya ditampilkan jika stok > 0
+          additionalProperties: true
+    PeminjamanInput:
+      type: object
+      required:
+      - buku_id
+      - nim_peminjam
+      - nama_peminjam
+      - durasi_hari
+      properties:
+        buku_id:
+          type: integer
+          example: 22
+        nim_peminjam:
+          type: string
+          maxLength: 15
+          example: 12S24009
+        nama_peminjam:
+          type: string
+          example: Mahasiswa Praktikum
+        durasi_hari:
+          type: integer
+          minimum: 1
+          example: 7
+    Peminjaman:
+      type: object
+      properties:
+        id:
+          type: integer
+        kode_pinjam:
+          type: string
+        nim_peminjam:
+          type: string
+        nama_peminjam:
+          type: string
+        status:
+          type: string
+          enum:
+          - dipinjam
+          - dikembalikan
+        tanggal_pinjam:
+          type: string
+          format: date
+        tanggal_jatuh_tempo:
+          type: string
+          format: date
+        tanggal_kembali:
+          type: string
+          format: date
+          nullable: true
+        buku:
+          $ref: '#/components/schemas/Buku'
+        _links:
+          type: object
+          description: Tautan kembalikan_buku hanya muncul ketika status dipinjam
+          additionalProperties: true
+    LoginInput:
+      type: object
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: pustakawan@del.ac.id
+        password:
+          type: string
+          format: password
+          example: password123
+        device_name:
+          type: string
+          example: postman-client
+    SuccessEnvelope:
+      type: object
+      required:
+      - success
+      - message
+      - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        data:
+          nullable: true
+          description: Resource / daftar resource / token tergantung endpoint
+        meta:
+          type: object
+          description: Metadata paginasi bila menggunakan endpoint daftar
+          additionalProperties: true
+paths:
+  /auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Login pustakawan dan terbitkan Bearer Token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        '200':
+          description: Token diterbitkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401': &id001
+          description: Kesalahan dalam format RFC 7807
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422': *id001
+  /auth/me:
+    get:
+      tags:
+      - Auth
+      summary: Profil pemilik token aktif
+      security: &id002
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Profil pengguna
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401': *id001
+  /auth/logout:
+    post:
+      tags:
+      - Auth
+      summary: Revoke token yang sedang dipakai
+      security: *id002
+      responses:
+        '200':
+          description: Token dicabut
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401': *id001
+  /bukus:
+    get:
+      tags:
+      - Buku
+      summary: Daftar buku dengan search, filter, sort, pagination
+      parameters:
+      - name: search
+        in: query
+        schema:
+          type: string
+        description: Pencarian judul, penulis, ISBN
+      - name: kategori_id
+        in: query
+        schema:
+          type: integer
+      - name: tersedia
+        in: query
+        schema:
+          type: boolean
+        description: Jika true, hanya stok > 0
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum:
+          - judul
+          - penulis
+          - isbn
+          - stok
+          - created_at
+      - name: dir
+        in: query
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 5
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Koleksi buku dalam data dan metadata paginasi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+    post:
+      tags:
+      - Buku
+      summary: Tambah buku
+      security: *id002
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BukuInput'
+      responses:
+        '201':
+          description: Buku dibuat, dengan header Location
+          headers:
+            Location:
+              description: URL buku yang baru dibuat
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401': *id001
+        '422': *id001
+  /bukus/{id}:
+    get:
+      tags:
+      - Buku
+      summary: Detail buku dan tautan HATEOAS
+      parameters:
+      - &id003
+        name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: ID buku di database
+      responses:
+        '200':
+          description: Detail buku
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404': *id001
+    put:
+      tags:
+      - Buku
+      summary: Ganti seluruh atribut buku (full replacement)
+      security: *id002
+      parameters:
+      - *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BukuInput'
+      responses:
+        '200':
+          description: Buku diperbarui seluruhnya
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401': *id001
+        '404': *id001
+        '422': *id001
+    patch:
+      tags:
+      - Buku
+      summary: Ubah sebagian atribut buku
+      security: *id002
+      parameters:
+      - *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BukuPatch'
+      responses:
+        '200':
+          description: Buku diperbarui sebagian
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '400': *id001
+        '401': *id001
+        '404': *id001
+        '422': *id001
+    delete:
+      tags:
+      - Buku
+      summary: Hapus buku jika tidak ada peminjaman aktif
+      security: *id002
+      parameters:
+      - *id003
+      responses:
+        '204':
+          description: Buku dihapus; body kosong
+        '401': *id001
+        '404': *id001
+        '409': *id001
+  /bukus/{id}/referensi-eksternal:
+    get:
+      tags:
+      - Buku
+      summary: Ambil metadata buku dari OpenLibrary berdasarkan ISBN
+      parameters:
+      - *id003
+      responses:
+        '200':
+          description: Metadata referensi eksternal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '404': *id001
+        '422': *id001
+        '502': *id001
+        '504': *id001
+  /peminjamans:
+    get:
+      tags:
+      - Peminjaman
+      summary: Daftar peminjaman terpaginasi
+      security: *id002
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - dipinjam
+          - dikembalikan
+      - name: nim
+        in: query
+        schema:
+          type: string
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          default: 5
+      - name: page
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Daftar peminjaman
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401': *id001
+    post:
+      tags:
+      - Peminjaman
+      summary: Catat peminjaman atomik dan kurangi stok (DB::transaction + lockForUpdate)
+      security: *id002
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeminjamanInput'
+      responses:
+        '201':
+          description: Peminjaman dicatat dengan header Location
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401': *id001
+        '409': *id001
+        '422': *id001
+  /peminjamans/{id}/kembalikan:
+    patch:
+      tags:
+      - Peminjaman
+      summary: Kembalikan buku secara atomik dan tambah stok
+      security: *id002
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: ID peminjaman
+      responses:
+        '200':
+          description: Buku berhasil dikembalikan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401': *id001
+        '404': *id001
+        '409': *id001
