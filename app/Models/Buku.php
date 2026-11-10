@@ -11,10 +11,7 @@ class Buku extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'isbn', 'judul', 'penulis', 'penerbit',
-        'tahun_terbit', 'kategori_id', 'stok', 'sinopsis',
-    ];
+    protected $fillable = ['judul', 'penulis', 'penerbit', 'tahun_terbit', 'isbn', 'stok', 'kategori_id'];
 
     public function kategori(): BelongsTo
     {
