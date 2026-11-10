@@ -30,10 +30,10 @@ class BukuResource extends JsonResource
             'isbn'         => $this->isbn,
             'stok'         => (int) $this->stok,
             'status_label' => $this->stok > 0 ? 'TERSEDIA' : 'HABIS',
-            'kategori'     => $this->whenLoaded('kategori', fn () => [
+            'kategori' => $this->whenLoaded('kategori', fn () => [
                 'id'   => $this->kategori->id,
-                'nama' => $this->kategori->nama,
-            ]),
+                'nama' => $this->kategori->nama_kategori,
+                ]),
             'jumlah_peminjaman'  => $this->whenCounted('peminjamans'),
             'riwayat_peminjaman' => $this->whenLoaded('peminjamans', fn () =>
                 $this->peminjamans->map(fn ($p) => [
